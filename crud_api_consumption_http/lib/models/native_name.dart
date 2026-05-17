@@ -13,4 +13,11 @@ class NativeName{
       common: json['common'] ?? '',
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'official': official,
+      'common': common,
+    };
+  }
 }

@@ -10,7 +10,14 @@ class Currency{
   factory Currency.fromJson(Map<String, dynamic> json){
     return Currency(
       name: json["name"],
-      symbol: json["symbole"],
+      symbol: json["symbol"],
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'symbol': symbol,
+    };
   }
 }

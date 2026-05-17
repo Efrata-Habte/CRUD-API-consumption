@@ -23,4 +23,14 @@ class Name{
       ),
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'common': common,
+      'official': official,
+      'nativeName': nativeName.map(
+        (key, value) => MapEntry(key, value.toJson()),
+      ),
+    };
+  }
 }

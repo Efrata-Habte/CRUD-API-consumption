@@ -21,7 +21,17 @@ class Country{
           Currency.fromJson(value)
         ),
       ),
-      capitals: List<String>.from(json["capitals"]),
+      capitals: List<String>.from(json["capital"]),
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name.toJson(),
+      'currencies': currency.map(
+        (key, value) => MapEntry(key, value.toJson()),
+      ),
+      'capital': capitals,
+    };
   }
 }
