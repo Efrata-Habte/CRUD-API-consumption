@@ -1,9 +1,7 @@
 import 'package:crud_api_consumption_http/models/country.dart';
-import 'package:crud_api_consumption_http/models/currency.dart';
-import 'package:crud_api_consumption_http/models/name.dart';
-import 'package:crud_api_consumption_http/models/native_name.dart';
-import 'package:crud_api_consumption_http/services/api_service.dart';
+import 'package:crud_api_consumption_http/providers/country_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 enum FormMode { create, update }
 
@@ -23,256 +21,304 @@ class CountryFormScreen extends StatefulWidget {
 
 class _CountryFormScreenState extends State<CountryFormScreen> {
   final _formKey = GlobalKey<FormState>();
-  bool _isSubmitting = false;
 
-  // ── Name fields ──────────────────────────────
-  late final TextEditingController _commonNameCtrl;
-  late final TextEditingController _officialNameCtrl;
-
-  // ── Native name fields (single entry) ────────
-  late final TextEditingController _nativeLangCodeCtrl;
-  late final TextEditingController _nativeOfficialCtrl;
-  late final TextEditingController _nativeCommonCtrl;
-
-  // ── Currency fields (single entry) ───────────
-  late final TextEditingController _currencyCodeCtrl;
-  late final TextEditingController _currencyNameCtrl;
-  late final TextEditingController _currencySymbolCtrl;
-
-  // ── Capital ──────────────────────────────────
-  late final TextEditingController _capitalCtrl;
+  late final TextEditingController _commonName;
+  late final TextEditingController _officialName;
+  late final TextEditingController _nativeLangCode;
+  late final TextEditingController _nativeOfficial;
+  late final TextEditingController _nativeCommon;
+  late final TextEditingController _currencyCode;
+  late final TextEditingController _currencyName;
+  late final TextEditingController _currencySymbol;
+  late final TextEditingController _capital;
 
   @override
   void initState() {
     super.initState();
     final c = widget.existingCountry;
 
-    // Pre-fill for update mode, empty for create mode
-    _commonNameCtrl = TextEditingController(text: c?.name.common ?? '');
-    _officialNameCtrl = TextEditingController(text: c?.name.official ?? '');
+    _commonName = TextEditingController(text: c?.name.common ?? '');
+    _officialName = TextEditingController(text: c?.name.official ?? '');
 
-    // Native name – take first entry if present
     final firstNative = c?.name.nativeName.entries.firstOrNull;
-    _nativeLangCodeCtrl =
-        TextEditingController(text: firstNative?.key ?? '');
-    _nativeOfficialCtrl =
+    _nativeLangCode = TextEditingController(text: firstNative?.key ?? '');
+    _nativeOfficial =
         TextEditingController(text: firstNative?.value.official ?? '');
-    _nativeCommonCtrl =
+    _nativeCommon =
         TextEditingController(text: firstNative?.value.common ?? '');
 
-    // Currency – take first entry if present
     final firstCurrency = c?.currency.entries.firstOrNull;
-    _currencyCodeCtrl =
-        TextEditingController(text: firstCurrency?.key ?? '');
-    _currencyNameCtrl =
+    _currencyCode = TextEditingController(text: firstCurrency?.key ?? '');
+    _currencyName =
         TextEditingController(text: firstCurrency?.value.name ?? '');
-    _currencySymbolCtrl =
+    _currencySymbol =
         TextEditingController(text: firstCurrency?.value.symbol ?? '');
 
-    _capitalCtrl = TextEditingController(
+    _capital = TextEditingController(
       text: (c?.capitals.isNotEmpty ?? false) ? c!.capitals.first : '',
     );
   }
 
   @override
   void dispose() {
-    _commonNameCtrl.dispose();
-    _officialNameCtrl.dispose();
-    _nativeLangCodeCtrl.dispose();
-    _nativeOfficialCtrl.dispose();
-    _nativeCommonCtrl.dispose();
-    _currencyCodeCtrl.dispose();
-    _currencyNameCtrl.dispose();
-    _currencySymbolCtrl.dispose();
-    _capitalCtrl.dispose();
+    for (final ctrl in [
+      _commonName, _officialName, _nativeLangCode,
+      _nativeOfficial, _nativeCommon, _currencyCode,
+      _currencyName, _currencySymbol, _capital,
+    ]) {
+      ctrl.dispose();
+    }
     super.dispose();
   }
 
-  // ──────────────────────────────────────────────
-  // Build Country from form fields
-  // ──────────────────────────────────────────────
-  Country _buildCountryFromForm() {
-    final nativeLangCode = _nativeLangCodeCtrl.text.trim();
-    final nativeMap = nativeLangCode.isNotEmpty
-        ? {
-            nativeLangCode: NativeName(
-              official: _nativeOfficialCtrl.text.trim(),
-              common: _nativeCommonCtrl.text.trim(),
-            ),
-          }
-        : <String, NativeName>{};
-
-    final currencyCode = _currencyCodeCtrl.text.trim();
-    final currencyMap = currencyCode.isNotEmpty
-        ? {
-            currencyCode: Currency(
-              name: _currencyNameCtrl.text.trim(),
-              symbol: _currencySymbolCtrl.text.trim(),
-            ),
-          }
-        : <String, Currency>{};
-
-    final capital = _capitalCtrl.text.trim();
-
-    return Country(
-      name: Name(
-        common: _commonNameCtrl.text.trim(),
-        official: _officialNameCtrl.text.trim(),
-        nativeName: nativeMap,
-      ),
-      currency: currencyMap,
-      capitals: capital.isNotEmpty ? [capital] : [],
-    );
-  }
-
-  // ──────────────────────────────────────────────
-  // Submit
-  // ──────────────────────────────────────────────
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() => _isSubmitting = true);
+    final provider = context.read<CountryProvider>();
+    final isCreate = widget.mode == FormMode.create;
 
-    try {
-      final country = _buildCountryFromForm();
-      Country result;
+    Country? result;
 
-      if (widget.mode == FormMode.create) {
-        result = await ApiServices.createCountry(country);
-      } else {
-        result = await ApiServices.updateCountry(
-          widget.existingCountry!.name.common,
-          country,
-        );
-      }
+    if (isCreate) {
+      result = await provider.createCountry(
+        commonName: _commonName.text.trim(),
+        officialName: _officialName.text.trim(),
+        nativeLangCode: _nativeLangCode.text.trim(),
+        nativeOfficial: _nativeOfficial.text.trim(),
+        nativeCommon: _nativeCommon.text.trim(),
+        currencyCode: _currencyCode.text.trim(),
+        currencyName: _currencyName.text.trim(),
+        currencySymbol: _currencySymbol.text.trim(),
+        capital: _capital.text.trim(),
+      );
+    } else {
+      result = await provider.updateCountry(
+        oldCommonName: widget.existingCountry!.name.common,
+        commonName: _commonName.text.trim(),
+        officialName: _officialName.text.trim(),
+        nativeLangCode: _nativeLangCode.text.trim(),
+        nativeOfficial: _nativeOfficial.text.trim(),
+        nativeCommon: _nativeCommon.text.trim(),
+        currencyCode: _currencyCode.text.trim(),
+        currencyName: _currencyName.text.trim(),
+        currencySymbol: _currencySymbol.text.trim(),
+        capital: _capital.text.trim(),
+      );
+    }
 
-      if (mounted) Navigator.pop(context, result);
-    } catch (e) {
-      if (mounted) {
+    if (!mounted) return;
+
+    if (result != null) {
+      Navigator.pop(context, result);
+    } else {
+      final err = provider.errorMessage;
+      if (err != null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text(err),
+            backgroundColor: Colors.redAccent,
+            behavior: SnackBarBehavior.floating,
+          ),
         );
+        provider.clearError();
       }
-    } finally {
-      if (mounted) setState(() => _isSubmitting = false);
     }
   }
 
-  // ──────────────────────────────────────────────
-  // Build
-  // ──────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
     final isCreate = widget.mode == FormMode.create;
 
     return Scaffold(
+      backgroundColor: const Color(0xFFFAFAFE),
       appBar: AppBar(
-        title: Text(isCreate ? 'Add Country' : 'Update Country'),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        foregroundColor: Colors.black87,
+        title: Text(
+          isCreate ? 'Add New Country' : 'Edit Country Info',
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+      body: Consumer<CountryProvider>(
+        builder: (context, provider, _) {
+          return Stack(
             children: [
-              _sectionHeader('Name'),
-              _field(
-                controller: _commonNameCtrl,
-                label: 'Common Name',
-                hint: 'e.g. Ethiopia',
-                required: true,
-              ),
-              _field(
-                controller: _officialNameCtrl,
-                label: 'Official Name',
-                hint: 'e.g. Federal Democratic Republic of Ethiopia',
-                required: true,
-              ),
-              const SizedBox(height: 12),
-              _sectionHeader('Native Name (first entry)'),
-              _field(
-                controller: _nativeLangCodeCtrl,
-                label: 'Language Code',
-                hint: 'e.g. amh',
-              ),
-              _field(
-                controller: _nativeOfficialCtrl,
-                label: 'Native Official Name',
-                hint: 'e.g. የኢትዮጵያ ፌዴራላዊ ዲሞክራሲያዊ ሪፐብሊክ',
-              ),
-              _field(
-                controller: _nativeCommonCtrl,
-                label: 'Native Common Name',
-                hint: 'e.g. ኢትዮጵያ',
-              ),
-              const SizedBox(height: 12),
-              _sectionHeader('Currency (first entry)'),
-              _field(
-                controller: _currencyCodeCtrl,
-                label: 'Currency Code',
-                hint: 'e.g. ETB',
-              ),
-              _field(
-                controller: _currencyNameCtrl,
-                label: 'Currency Name',
-                hint: 'e.g. Ethiopian birr',
-              ),
-              _field(
-                controller: _currencySymbolCtrl,
-                label: 'Currency Symbol',
-                hint: 'e.g. Br',
-              ),
-              const SizedBox(height: 12),
-              _sectionHeader('Capital'),
-              _field(
-                controller: _capitalCtrl,
-                label: 'Capital City',
-                hint: 'e.g. Addis Ababa',
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: _isSubmitting ? null : _submit,
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+              SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _buildSectionCard(
+                        title: 'Primary Names',
+                        icon: Icons.public,
+                        children: [
+                          _field(
+                            ctrl: _commonName,
+                            label: 'Common Name',
+                            hint: 'e.g. Canada',
+                            required: true,
+                          ),
+                          _field(
+                            ctrl: _officialName,
+                            label: 'Official Name',
+                            hint: 'e.g. Dominion of Canada',
+                            required: true,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      _buildSectionCard(
+                        title: 'Native Identity',
+                        icon: Icons.translate_rounded,
+                        children: [
+                          _field(
+                            ctrl: _nativeLangCode,
+                            label: 'Language ISO Code',
+                            hint: 'e.g. eng, fra',
+                          ),
+                          _field(
+                            ctrl: _nativeOfficial,
+                            label: 'Native Official Name',
+                            hint: 'e.g. Dominion of Canada',
+                          ),
+                          _field(
+                            ctrl: _nativeCommon,
+                            label: 'Native Common Name',
+                            hint: 'e.g. Canada',
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      _buildSectionCard(
+                        title: 'Finance & Currencies',
+                        icon: Icons.payments_outlined,
+                        children: [
+                          _field(
+                            ctrl: _currencyCode,
+                            label: 'Currency Code',
+                            hint: 'e.g. CAD',
+                          ),
+                          _field(
+                            ctrl: _currencyName,
+                            label: 'Currency Name',
+                            hint: 'e.g. Canadian dollar',
+                          ),
+                          _field(
+                            ctrl: _currencySymbol,
+                            label: 'Currency Symbol',
+                            hint: 'e.g. \$',
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      _buildSectionCard(
+                        title: 'Administrative Capital',
+                        icon: Icons.business_outlined,
+                        children: [
+                          _field(
+                            ctrl: _capital,
+                            label: 'Capital City',
+                            hint: 'e.g. Ottawa',
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 32),
+                      ElevatedButton(
+                        onPressed: provider.isLoading ? null : _submit,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.deepPurple,
+                          foregroundColor: Colors.white,
+                          elevation: 1,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                        child: provider.isLoading
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.5,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : Text(
+                                isCreate ? 'Register Country' : 'Save Modifications',
+                                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                              ),
+                      ),
+                    ],
                   ),
                 ),
-                child: _isSubmitting
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : Text(
-                        isCreate ? 'Create Country' : 'Update Country',
-                        style: const TextStyle(fontSize: 16),
-                      ),
               ),
+              if (provider.isLoading)
+                Container(
+                  color: Colors.black.withOpacity(0.2),
+                  child: const Center(
+                    child: CircularProgressIndicator(color: Colors.deepPurple),
+                  ),
+                ),
             ],
-          ),
-        ),
+          );
+        },
       ),
     );
   }
 
-  Widget _sectionHeader(String title) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Text(
-        title,
-        style: const TextStyle(
-          fontSize: 15,
-          fontWeight: FontWeight.bold,
-          color: Colors.deepPurple,
+  Widget _buildSectionCard({
+    required String title,
+    required IconData icon,
+    required List<Widget> children,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+        border: Border.all(
+          color: Colors.deepPurple.withOpacity(0.06),
+          width: 1,
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(icon, size: 20, color: Colors.deepPurple),
+                const SizedBox(width: 8),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            ...children,
+          ],
         ),
       ),
     );
   }
 
   Widget _field({
-    required TextEditingController controller,
+    required TextEditingController ctrl,
     required String label,
     String? hint,
     bool required = false,
@@ -280,17 +326,37 @@ class _CountryFormScreenState extends State<CountryFormScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: TextFormField(
-        controller: controller,
+        controller: ctrl,
         decoration: InputDecoration(
           labelText: label,
           hintText: hint,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+          labelStyle: TextStyle(color: Colors.grey.shade700, fontSize: 14),
+          floatingLabelStyle: const TextStyle(color: Colors.deepPurple, fontWeight: FontWeight.bold),
+          hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: Colors.grey.shade300),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: Colors.grey.shade300),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Colors.deepPurple, width: 1.5),
+          ),
+          errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Colors.redAccent, width: 1),
+          ),
+          focusedErrorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Colors.redAccent, width: 1.5),
+          ),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         ),
         validator: required
-            ? (value) =>
-                (value == null || value.trim().isEmpty) ? '$label is required' : null
+            ? (v) => (v == null || v.trim().isEmpty) ? '$label is required' : null
             : null,
       ),
     );
