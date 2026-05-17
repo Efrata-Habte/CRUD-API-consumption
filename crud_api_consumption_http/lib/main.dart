@@ -13,7 +13,6 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      // CountryProvider is created once and lives for the app's lifetime
       create: (_) => CountryProvider(),
       child: MaterialApp(
         title: 'Countries CRUD',

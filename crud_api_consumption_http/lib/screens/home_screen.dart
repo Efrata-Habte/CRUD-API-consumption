@@ -129,13 +129,13 @@ class _HomeScreenState extends State<HomeScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.deepPurple.withOpacity(0.04),
+            color: const Color(0x0A673AB7),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
         ],
         border: Border.all(
-          color: Colors.deepPurple.withOpacity(0.08),
+          color: const Color(0x14673AB7),
           width: 1,
         ),
       ),

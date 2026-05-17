@@ -257,7 +257,7 @@ class _CountryFormScreenState extends State<CountryFormScreen> {
               ),
               if (provider.isLoading)
                 Container(
-                  color: Colors.black.withOpacity(0.2),
+                  color: const Color(0x33000000),
                   child: const Center(
                     child: CircularProgressIndicator(color: Colors.deepPurple),
                   ),
@@ -280,13 +280,13 @@ class _CountryFormScreenState extends State<CountryFormScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: const Color(0x05000000),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
         ],
         border: Border.all(
-          color: Colors.deepPurple.withOpacity(0.06),
+          color: const Color(0x0F673AB7),
           width: 1,
         ),
       ),
