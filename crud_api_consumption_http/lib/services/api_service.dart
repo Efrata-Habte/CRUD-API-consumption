@@ -66,20 +66,22 @@ class ApiServices {
   static Future<Country> createCountry(
     Country country,
   ) async {
-    // Send the POST request with the full country payload
-    await http.post(
-      Uri.parse(baseUrl),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(country.toJson()),
-    );
+    // Fire the POST request; silently ignore any API error (read-only API)
+    try {
+      await http.post(
+        Uri.parse(baseUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(country.toJson()),
+      );
+    } catch (_) {}
 
-    // Simulate successful creation in the local store
-    countriesStore.add(country);
+    // Always add to the local store regardless of API response
+    countriesStore.insert(0, country);
 
     return country;
   }
 
-  // UPDATE 
+  // UPDATE
   static Future<Country> updateCountry(
     String oldCountryName,
     Country updatedCountry,
@@ -96,17 +98,24 @@ class ApiServices {
       );
     }
 
-    // Send the PATCH request with the updated country payload
-    await http.patch(
-      Uri.parse('$countryUrl${Uri.encodeComponent(oldCountryName)}'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(updatedCountry.toJson()),
-    );
+    final oldJson = countriesStore[index].toJson();
+    final newJson = updatedCountry.toJson();
 
-    // Simulate successful update in the local store
-    countriesStore[index] = updatedCountry;
+    final patchBody = _diffJson(oldJson, newJson);
 
-    return updatedCountry;
+    try {
+      await http.patch(
+        Uri.parse('$countryUrl${Uri.encodeComponent(oldCountryName)}'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(patchBody),
+      );
+    } catch (_) {}
+
+    final mergedJson = _deepMerge(oldJson, patchBody);
+    final mergedCountry = Country.fromJson(mergedJson);
+    countriesStore[index] = mergedCountry;
+
+    return mergedCountry;
   }
 
   // DELETE
@@ -125,15 +134,65 @@ class ApiServices {
       );
     }
 
-    // Send the DELETE request
-    await http.delete(
-      Uri.parse('$countryUrl${Uri.encodeComponent(countryName)}'),
-      headers: {'Content-Type': 'application/json'},
-    );
+    // Fire the DELETE request; silently ignore any API error (read-only API)
+    try {
+      await http.delete(
+        Uri.parse('$countryUrl${Uri.encodeComponent(countryName)}'),
+        headers: {'Content-Type': 'application/json'},
+      );
+    } catch (_) {}
 
-    // Simulate successful deletion in the local store
     final deleted = countriesStore.removeAt(index);
 
     return deleted.name.common;
+  }
+
+
+  /// Returns a map containing only the keys whose values differ between
+  /// [oldMap] and [newMap]. Nested maps are diffed recursively.
+  static Map<String, dynamic> _diffJson(
+    Map<String, dynamic> oldMap,
+    Map<String, dynamic> newMap,
+  ) {
+    final diff = <String, dynamic>{};
+
+    newMap.forEach((key, newValue) {
+      final oldValue = oldMap[key];
+
+      if (newValue is Map<String, dynamic> &&
+          oldValue is Map<String, dynamic>) {
+        // Recurse into nested objects
+        final nestedDiff = _diffJson(oldValue, newValue);
+        if (nestedDiff.isNotEmpty) diff[key] = nestedDiff;
+      } else if (jsonEncode(newValue) != jsonEncode(oldValue)) {
+        // Primitive or list that changed
+        diff[key] = newValue;
+      }
+    });
+
+    return diff;
+  }
+
+  /// Deep-merges [overrides] on top of [base].
+  /// Nested maps are merged recursively; other values are replaced.
+  static Map<String, dynamic> _deepMerge(
+    Map<String, dynamic> base,
+    Map<String, dynamic> overrides,
+  ) {
+    final result = Map<String, dynamic>.from(base);
+
+    overrides.forEach((key, value) {
+      if (value is Map<String, dynamic> &&
+          result[key] is Map<String, dynamic>) {
+        result[key] = _deepMerge(
+          result[key] as Map<String, dynamic>,
+          value,
+        );
+      } else {
+        result[key] = value;
+      }
+    });
+
+    return result;
   }
 }
