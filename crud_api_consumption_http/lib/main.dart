@@ -18,7 +18,10 @@ class MyApp extends StatelessWidget {
         title: 'Countries CRUD',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: const Color(0xFF0F2537),
+            primary: const Color(0xFF0F2537),
+          ),
           useMaterial3: true,
         ),
         home: const HomeScreen(),

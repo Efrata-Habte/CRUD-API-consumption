@@ -229,7 +229,7 @@ class _CountryFormScreenState extends State<CountryFormScreen> {
                       ElevatedButton(
                         onPressed: provider.isLoading ? null : _submit,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.deepPurple,
+                          backgroundColor: const Color(0xFF0F2537),
                           foregroundColor: Colors.white,
                           elevation: 1,
                           padding: const EdgeInsets.symmetric(vertical: 16),
@@ -259,7 +259,7 @@ class _CountryFormScreenState extends State<CountryFormScreen> {
                 Container(
                   color: const Color(0x33000000),
                   child: const Center(
-                    child: CircularProgressIndicator(color: Colors.deepPurple),
+                    child: CircularProgressIndicator(color: Color(0xFF0F2537)),
                   ),
                 ),
             ],
@@ -286,7 +286,7 @@ class _CountryFormScreenState extends State<CountryFormScreen> {
           ),
         ],
         border: Border.all(
-          color: const Color(0x0F673AB7),
+          color: const Color(0x140F2537),
           width: 1,
         ),
       ),
@@ -297,7 +297,7 @@ class _CountryFormScreenState extends State<CountryFormScreen> {
           children: [
             Row(
               children: [
-                Icon(icon, size: 20, color: Colors.deepPurple),
+                Icon(icon, size: 20, color: const Color(0xFF0F2537)),
                 const SizedBox(width: 8),
                 Text(
                   title,
@@ -331,7 +331,7 @@ class _CountryFormScreenState extends State<CountryFormScreen> {
           labelText: label,
           hintText: hint,
           labelStyle: TextStyle(color: Colors.grey.shade700, fontSize: 14),
-          floatingLabelStyle: const TextStyle(color: Colors.deepPurple, fontWeight: FontWeight.bold),
+          floatingLabelStyle: const TextStyle(color: Color(0xFF0F2537), fontWeight: FontWeight.bold),
           hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
@@ -343,7 +343,7 @@ class _CountryFormScreenState extends State<CountryFormScreen> {
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: Colors.deepPurple, width: 1.5),
+            borderSide: const BorderSide(color: Color(0xFF0F2537), width: 1.5),
           ),
           errorBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),

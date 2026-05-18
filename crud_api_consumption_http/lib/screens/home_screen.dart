@@ -122,8 +122,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildCard(BuildContext context, Country country) {
-    final currencies = country.currency.entries
-        .map((e) => '${e.key}: ${e.value.name} (${e.value.symbol})')
+    final currencies = country.currency.values
+        .map((c) => '${c.name} (${c.symbol})')
         .join(', ');
 
     final String firstLetter = country.name.common.isNotEmpty
@@ -135,15 +135,15 @@ class _HomeScreenState extends State<HomeScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
-            color: const Color(0x0A673AB7),
+            color: Color(0x0A0F2537),
             blurRadius: 10,
-            offset: const Offset(0, 4),
+            offset: Offset(0, 4),
           ),
         ],
         border: Border.all(
-          color: const Color(0x14673AB7),
+          color: const Color(0x140F2537),
           width: 1,
         ),
       ),
@@ -152,7 +152,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: InkWell(
           onTap: () => _openUpdate(context, country),
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(18),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -161,11 +161,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     Container(
                       width: 48,
                       height: 48,
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         gradient: LinearGradient(
                           colors: [
-                            Colors.deepPurple.shade100,
-                            Colors.deepPurple.shade200,
+                            Color(0xFFE2EAF4),
+                            Color(0xFFC5D6E7),
                           ],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
@@ -175,10 +175,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: Center(
                         child: Text(
                           firstLetter,
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
-                            color: Colors.deepPurple.shade800,
+                            color: Color(0xFF0F2537),
                           ),
                         ),
                       ),
@@ -209,32 +209,47 @@ class _HomeScreenState extends State<HomeScreen> {
                         ],
                       ),
                     ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _row(Icons.location_city_outlined, 'Capital',
+                              country.capitals.isEmpty ? 'N/A' : country.capitals.join(', ')),
+                          const SizedBox(height: 8),
+                          _row(Icons.monetization_on_outlined, 'Currency',
+                              currencies.isEmpty ? 'N/A' : currencies),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.mode_edit_outline_outlined, color: Colors.indigo, size: 22),
+                          icon: const Icon(Icons.mode_edit_outline_rounded, color: Color(0xFF0F2537), size: 20),
                           tooltip: 'Update',
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
                           onPressed: () => _openUpdate(context, country),
                         ),
+                        const SizedBox(width: 12),
                         IconButton(
-                          icon: const Icon(Icons.delete_outline_outlined, color: Colors.redAccent, size: 22),
+                          icon: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent, size: 20),
                           tooltip: 'Delete',
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
                           onPressed: () => _delete(context, country.name.common),
                         ),
                       ],
                     ),
                   ],
                 ),
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 12),
-                  child: Divider(height: 1, thickness: 0.8),
-                ),
-                _row(Icons.location_city_outlined, 'Capital',
-                    country.capitals.isEmpty ? 'N/A' : country.capitals.join(', ')),
-                const SizedBox(height: 8),
-                _row(Icons.monetization_on_outlined, 'Currency',
-                    currencies.isEmpty ? 'N/A' : currencies),
               ],
             ),
           ),
@@ -247,7 +262,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 18, color: Colors.deepPurple.shade400),
+        Icon(icon, size: 18, color: const Color(0xFF475569)),
         const SizedBox(width: 8),
         Text(
           '$label: ',
@@ -291,9 +306,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
-                    foregroundColor: Colors.deepPurple,
+                    foregroundColor: const Color(0xFF0F2537),
                     elevation: 0,
-                    side: BorderSide(color: Colors.deepPurple.shade200),
+                    side: const BorderSide(color: Color(0xFFC5D6E7)),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   ),
@@ -305,7 +320,7 @@ class _HomeScreenState extends State<HomeScreen> {
               if (provider.hasMore)
                 ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.deepPurple,
+                    backgroundColor: const Color(0xFF0F2537),
                     foregroundColor: Colors.white,
                     elevation: 1,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
@@ -328,15 +343,15 @@ class _HomeScreenState extends State<HomeScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
-            color: const Color(0x0A673AB7),
+            color: Color(0x0A0F2537),
             blurRadius: 10,
-            offset: const Offset(0, 4),
+            offset: Offset(0, 4),
           ),
         ],
         border: Border.all(
-          color: const Color(0x14673AB7),
+          color: const Color(0x140F2537),
           width: 1,
         ),
       ),
@@ -348,7 +363,7 @@ class _HomeScreenState extends State<HomeScreen> {
         decoration: InputDecoration(
           hintText: 'Search country name (e.g. Canada)',
           hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
-          prefixIcon: const Icon(Icons.search, color: Colors.deepPurple),
+          prefixIcon: const Icon(Icons.search, color: Color(0xFF0F2537)),
           suffixIcon: IconButton(
             icon: const Icon(Icons.clear, color: Colors.grey),
             onPressed: () {
@@ -382,12 +397,12 @@ class _HomeScreenState extends State<HomeScreen> {
         actions: [
           Container(
             margin: const EdgeInsets.only(right: 8),
-            decoration: BoxDecoration(
-              color: Colors.deepPurple.shade50,
+            decoration: const BoxDecoration(
+              color: Color(0xFFF0F4F8),
               shape: BoxShape.circle,
             ),
             child: IconButton(
-              icon: const Icon(Icons.refresh, color: Colors.deepPurple),
+              icon: const Icon(Icons.refresh, color: Color(0xFF0F2537)),
               tooltip: 'Reload countries',
               onPressed: () {
                 _searchCtrl.clear();
@@ -408,7 +423,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        CircularProgressIndicator(color: Colors.deepPurple),
+                        CircularProgressIndicator(color: Color(0xFF0F2537)),
                         SizedBox(height: 16),
                         Text(
                           'Exploring the globe...',
@@ -449,7 +464,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           const SizedBox(height: 24),
                           ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.deepPurple,
+                              backgroundColor: const Color(0xFF0F2537),
                               foregroundColor: Colors.white,
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
@@ -505,7 +520,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         top: 0,
                         left: 0,
                         right: 0,
-                        child: LinearProgressIndicator(color: Colors.deepPurple),
+                        child: LinearProgressIndicator(color: Color(0xFF0F2537)),
                       ),
                   ],
                 );
@@ -515,7 +530,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: Colors.deepPurple,
+        backgroundColor: const Color(0xFF0F2537),
         foregroundColor: Colors.white,
         elevation: 4,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
