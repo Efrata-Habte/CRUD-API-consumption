@@ -12,12 +12,20 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final TextEditingController _searchCtrl = TextEditingController();
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<CountryProvider>().loadCountries();
     });
+  }
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
   }
 
   Future<void> _delete(BuildContext context, String commonName) async {
@@ -314,6 +322,47 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Widget _buildSearchBar(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0x0A673AB7),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+        border: Border.all(
+          color: const Color(0x14673AB7),
+          width: 1,
+        ),
+      ),
+      child: TextField(
+        controller: _searchCtrl,
+        onSubmitted: (val) {
+          context.read<CountryProvider>().loadSingleCountry(val);
+        },
+        decoration: InputDecoration(
+          hintText: 'Search country name (e.g. Canada)',
+          hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+          prefixIcon: const Icon(Icons.search, color: Colors.deepPurple),
+          suffixIcon: IconButton(
+            icon: const Icon(Icons.clear, color: Colors.grey),
+            onPressed: () {
+              _searchCtrl.clear();
+              context.read<CountryProvider>().loadCountries();
+            },
+          ),
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -340,116 +389,130 @@ class _HomeScreenState extends State<HomeScreen> {
             child: IconButton(
               icon: const Icon(Icons.refresh, color: Colors.deepPurple),
               tooltip: 'Reload countries',
-              onPressed: () => context.read<CountryProvider>().loadCountries(),
+              onPressed: () {
+                _searchCtrl.clear();
+                context.read<CountryProvider>().loadCountries();
+              },
             ),
           ),
         ],
       ),
-      body: Consumer<CountryProvider>(
-        builder: (context, provider, _) {
-          if (provider.isLoading && provider.countries.isEmpty) {
-            return const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(color: Colors.deepPurple),
-                  SizedBox(height: 16),
-                  Text(
-                    'Exploring the globe...',
-                    style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w500),
-                  ),
-                ],
-              ),
-            );
-          }
+      body: Column(
+        children: [
+          _buildSearchBar(context),
+          Expanded(
+            child: Consumer<CountryProvider>(
+              builder: (context, provider, _) {
+                if (provider.isLoading && provider.countries.isEmpty) {
+                  return const Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        CircularProgressIndicator(color: Colors.deepPurple),
+                        SizedBox(height: 16),
+                        Text(
+                          'Exploring the globe...',
+                          style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w500),
+                        ),
+                      ],
+                    ),
+                  );
+                }
 
-          if (provider.errorMessage != null) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(32),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
+                if (provider.errorMessage != null) {
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(32),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.red.shade50,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.error_outline_rounded,
+                                color: Colors.redAccent, size: 48),
+                          ),
+                          const SizedBox(height: 16),
+                          const Text(
+                            'Oops! Something went wrong',
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            provider.errorMessage!,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: Colors.grey.shade600),
+                          ),
+                          const SizedBox(height: 24),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.deepPurple,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                            ),
+                            onPressed: () {
+                              provider.clearError();
+                              provider.loadCountries();
+                            },
+                            child: const Text('Retry Again', style: TextStyle(fontWeight: FontWeight.bold)),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }
+
+                if (provider.countries.isEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.map_outlined, color: Colors.grey.shade400, size: 64),
+                        const SizedBox(height: 16),
+                        Text(
+                          'No countries found.',
+                          style: TextStyle(color: Colors.grey.shade600, fontSize: 16, fontWeight: FontWeight.w500),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                final visibleCountries = provider.visibleCountries;
+
+                return Stack(
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.red.shade50,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(Icons.error_outline_rounded,
-                          color: Colors.redAccent, size: 48),
-                    ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'Oops! Something went wrong',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      provider.errorMessage!,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.grey.shade600),
-                    ),
-                    const SizedBox(height: 24),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.deepPurple,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                      ),
-                      onPressed: () {
-                        provider.clearError();
-                        provider.loadCountries();
+                    ListView.builder(
+                      padding: const EdgeInsets.only(bottom: 96, top: 8),
+                      itemCount: visibleCountries.length + 1,
+                      itemBuilder: (ctx, i) {
+                        if (i == visibleCountries.length) {
+                          // Hide pagination panel if we searched for one country
+                          if (provider.totalCount <= 1) {
+                            return const SizedBox.shrink();
+                          }
+                          return _buildPaginationPanel(provider);
+                        }
+                        return _buildCard(ctx, visibleCountries[i]);
                       },
-                      child: const Text('Retry Again', style: TextStyle(fontWeight: FontWeight.bold)),
                     ),
+                    if (provider.isLoading)
+                      const Positioned(
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        child: LinearProgressIndicator(color: Colors.deepPurple),
+                      ),
                   ],
-                ),
-              ),
-            );
-          }
-
-          if (provider.countries.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.map_outlined, color: Colors.grey.shade400, size: 64),
-                  const SizedBox(height: 16),
-                  Text(
-                    'No countries found.',
-                    style: TextStyle(color: Colors.grey.shade600, fontSize: 16, fontWeight: FontWeight.w500),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          final visibleCountries = provider.visibleCountries;
-
-          return Stack(
-            children: [
-              ListView.builder(
-                padding: const EdgeInsets.only(bottom: 96, top: 8),
-                itemCount: visibleCountries.length + 1,
-                itemBuilder: (ctx, i) {
-                  if (i == visibleCountries.length) {
-                    return _buildPaginationPanel(provider);
-                  }
-                  return _buildCard(ctx, visibleCountries[i]);
-                },
-              ),
-              if (provider.isLoading)
-                const Positioned(
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  child: LinearProgressIndicator(color: Colors.deepPurple),
-                ),
-            ],
-          );
-        },
+                );
+              },
+            ),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: Colors.deepPurple,

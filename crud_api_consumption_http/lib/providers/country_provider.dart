@@ -58,6 +58,24 @@ class CountryProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> loadSingleCountry(String name) async {
+    if (name.trim().isEmpty) {
+      await loadCountries();
+      return;
+    }
+    _setLoading(true);
+    _setError(null);
+    _visibleCount = 10;
+    try {
+      final country = await ApiService.getCountry(name);
+      _countries = [country];
+    } catch (e) {
+      _setError(e.toString());
+    } finally {
+      _setLoading(false);
+    }
+  }
+
   Future<Country?> createCountry({
     required String commonName,
     required String officialName,
