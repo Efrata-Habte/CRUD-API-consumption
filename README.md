@@ -27,15 +27,15 @@ Allows users to discover and add new countries into the Atlas. It features organ
 Loads and lists all registered countries using Provider state, capsule-shaped search panels, and dynamic pagination toggles.
 
 #### Main Dashboard & Explorer List
-Includes custom Navy Blue country cards displaying capital cities and active currencies in a clean layout with generous breathing room.
+Includes custom country cards displaying capital cities and active currencies in a clean layout with generous breathing room.
 <p align="center">
   <img src="screenshots/dashboard.png" width="480" alt="Dashboard Explored List" />
 </p>
 
 #### Filtering & Search Operations
-Allows finding registered countries instantly using the top search bar (e.g., search queries like "Anguilla").
+Allows finding registered countries instantly using the top search bar (e.g., search queries like "Ethiopia").
 <p align="center">
-  <img src="screenshots/search.png" width="480" alt="Search Filter" />
+  <img src="screenshots/search_country.png" width="480" alt="Search Filter" />
 </p>
 
 ---
@@ -43,7 +43,7 @@ Allows finding registered countries instantly using the top search bar (e.g., se
 ### 3. Update Operation (U)
 Allows modifying registered country records. Opening a country pre-fills all fields in the multi-section form.
 
-#### Edit Country Form (Anguilla Pre-filled - Top)
+#### Edit Country Form (Guatemala Pre-filled - Top)
 <p align="center">
   <img src="screenshots/update_form.png" width="480" alt="Update Form Top" />
 </p>
