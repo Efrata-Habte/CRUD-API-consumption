@@ -136,7 +136,7 @@ class _CountryFormScreenState extends State<CountryFormScreen> {
         elevation: 0,
         foregroundColor: Colors.black87,
         title: Text(
-          isCreate ? 'Add New Country' : 'Edit Country Info',
+          isCreate ? 'Add New Country' : 'Update Country Info',
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
@@ -247,7 +247,7 @@ class _CountryFormScreenState extends State<CountryFormScreen> {
                                 ),
                               )
                             : Text(
-                                isCreate ? 'Register Country' : 'Save Modifications',
+                                isCreate ? 'Add Country' : 'Update Country',
                                 style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                               ),
                       ),

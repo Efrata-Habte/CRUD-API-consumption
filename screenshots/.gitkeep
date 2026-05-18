@@ -1,0 +1,11 @@
+# Screenshots Directory Placeholder
+This directory contains the screenshots for the Atlas Explorer CRUD application.
+Please place your screenshots in this directory with the following filenames:
+1. `create_form_top.png` (Form View - Top & Live Card Preview)
+2. `create_form_bottom.png` (Form View - Bottom & Section Inputs)
+3. `dashboard.png` (Main Dashboard & Analytics Explored List)
+4. `search.png` (Filtering & Search Operations list)
+5. `update_form.png` (Edit Country Form - Top)
+6. `update_form_bottom.png` (Edit Country Form - Scrolled to Bottom)
+7. `delete_confirm.png` (Warning Confirm bottom sheet)
+8. `delete_success.png` (Successful Deletion Feedback Toast)
